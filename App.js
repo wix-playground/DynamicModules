@@ -8,33 +8,41 @@
  */
 
 import React, {Component} from 'react';
-import {Platform, StyleSheet, Text, View} from 'react-native';
-
-const instructions = Platform.select({
-  ios: 'Press Cmd+R to reload,\n' + 'Cmd+D or shake for dev menu',
-  android:
-    'Double tap R on your keyboard to reload,\n' +
-    'Shake or press menu button for dev menu',
-});
+import {StyleSheet, Text, View, Button, NativeModules} from 'react-native';
 
 type Props = {};
 export default class App extends Component<Props> {
 
   constructor(props) {
     super(props);
-
-    let module = global.moduleResolver.resolve('IA');
-    module.foo();
   }
 
   render() {
+    let module = global.moduleResolver.resolve('IMessage');
+    let moduleName = module ? module.name() : 'None';
+
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome}>Welcome to React Native!</Text>
-        <Text style={styles.instructions}>To get started, edit App.js</Text>
-        <Text style={styles.instructions}>{instructions}</Text>
+        <Text style={styles.welcome}>Welcome to Dynamic Modules!</Text>
+        <Text style={styles.instructions}>Selected module: {moduleName}</Text>
+
+        <View style={{marginTop: 20, marginBottom: 20}}>
+          <Button title='Show message' onPress={App._showMessage}/>
+        </View>
+        <Button title='Switch module' onPress={App._switchModule}/>
       </View>
     );
+  }
+
+  static _showMessage() {
+    let module = global.moduleResolver.resolve('IMessage');
+    if (module) {
+      module.message();
+    }
+  }
+
+  static _switchModule() {
+    NativeModules.SwitchModule.switchModule();
   }
 }
 

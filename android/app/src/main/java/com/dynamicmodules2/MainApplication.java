@@ -1,6 +1,8 @@
 package com.dynamicmodules2;
 
 import android.app.Application;
+import android.text.TextUtils;
+import android.util.Log;
 
 import com.dynamicmodules2.bundlebuilder.BundleBuilder;
 import com.dynamicmodules2.bundlebuilder.ISource;
@@ -28,14 +30,15 @@ public class MainApplication extends Application implements ReactApplication {
         @Override
         protected List<ReactPackage> getPackages() {
             return Arrays.<ReactPackage>asList(
-                    new MainReactPackage()
+                    new MainReactPackage(),
+                    new SwitchPackage()
             );
         }
 
-    @Override
-    protected String getJSMainModuleName() {
-      return "index";
-    }
+        @Override
+        protected String getJSMainModuleName() {
+            return "index";
+        }
 
         @Nullable
         @Override
@@ -52,6 +55,7 @@ public class MainApplication extends Application implements ReactApplication {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.d("DynamicModules", "App.onCreate()");
         try {
             buildBundle();
         } catch (IOException e) {
@@ -66,15 +70,20 @@ public class MainApplication extends Application implements ReactApplication {
     }
 
     private void buildBundle() throws IOException {
-        BundleBuilder builder = new BundleBuilder(
-                this,
-                new ISource[] { new ISource() {
+        final String module = SwitchModuleHelper.currentModule(this);
+        ISource[] modules = TextUtils.isEmpty(module) ?
+                new ISource[]{}
+
+                :
+
+                new ISource[]{new ISource() {
                     @Override
                     public InputStream open() throws IOException {
-                        return getAssets().open("bundles/modules/a.js");
+                        return getAssets().open("bundles/modules/" + module);
                     }
-                }},
-                bundleName());
+                }};
+
+        BundleBuilder builder = new BundleBuilder(this, modules, bundleName());
         builder.build();
     }
 }
