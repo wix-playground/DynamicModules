@@ -11,7 +11,7 @@ public class SwitchModuleHelper {
     @NonNull
     public static String currentModule(@NonNull Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        String value = prefs.getString(PREF_CURRENT_MODULE, "console_module.js");
+        String value = prefs.getString(PREF_CURRENT_MODULE, "");
         return value != null ? value : "";
     }
 

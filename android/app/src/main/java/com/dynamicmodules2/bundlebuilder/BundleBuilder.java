@@ -15,9 +15,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
 public class BundleBuilder {
-    private static final String BUNDLE_BASE = "bundles/base.js";
-    private static final String BUNDLE_REG = "bundles/reg.js";
-    private static final String BUNDLE_END = "bundles/end.js";
+    private static final String BUNDLE_BASE = "bundles_old/base.js";
+    private static final String BUNDLE_REG = "bundles_old/reg.js";
+    private static final String BUNDLE_END = "bundles_old/end.js";
 
     @NonNull
     private Context context;
@@ -48,6 +48,7 @@ public class BundleBuilder {
         joinAll(out, config);
     }
 
+    @SuppressWarnings("TryFinallyCanBeTryWithResources")
     private FileOutputStream copyBaseToDst() throws IOException {
         InputStream in = context.getAssets().open(BUNDLE_BASE);
         try {
@@ -108,6 +109,7 @@ public class BundleBuilder {
         preparedEndString = sb.toString();
     }
 
+    @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
     private void joinAll(@NonNull FileOutputStream out, @NonNull Config config) throws IOException {
         OutputStreamWriter writer = new OutputStreamWriter(out);
 
@@ -120,6 +122,7 @@ public class BundleBuilder {
         writer.close();
     }
 
+    @SuppressWarnings("unused")
     private void consoleFile(String path) throws IOException {
         InputStream is = new FileInputStream(path);
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
