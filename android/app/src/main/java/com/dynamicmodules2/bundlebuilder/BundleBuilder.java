@@ -4,6 +4,8 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import org.json.JSONException;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -36,14 +38,14 @@ public class BundleBuilder {
         this.dst = dst;
     }
 
-    public void build() throws IOException {
+    public void build() throws IOException, JSONException {
+        Config config = new Config(context);
+
         FileOutputStream out = copyBaseToDst();
         processModules();
         processReg();
         processEnd();
-        joinAll(out);
-
-//        consoleFile(dst);
+        joinAll(out, config);
     }
 
     private FileOutputStream copyBaseToDst() throws IOException {
@@ -106,11 +108,14 @@ public class BundleBuilder {
         preparedEndString = sb.toString();
     }
 
-    private void joinAll(@NonNull FileOutputStream out) throws IOException {
+    private void joinAll(@NonNull FileOutputStream out, @NonNull Config config) throws IOException {
         OutputStreamWriter writer = new OutputStreamWriter(out);
 
-        writer.append(preparedRegString);
+        writer.append("var $__dmRegIdxArray = [];");
+        writer.append("var $__dmIdx = " + (config.getLastBaseIndex() + 1) + ";");
+
         writer.append(preparedModulesString);
+        writer.append(preparedRegString);
         writer.append(preparedEndString);
         writer.close();
     }

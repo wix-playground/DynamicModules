@@ -12,6 +12,8 @@ import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
 import com.facebook.soloader.SoLoader;
 
+import org.json.JSONException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -60,6 +62,8 @@ public class MainApplication extends Application implements ReactApplication {
             buildBundle();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
 
         SoLoader.init(this, /* native exopackage */ false);
@@ -69,7 +73,7 @@ public class MainApplication extends Application implements ReactApplication {
         return getFilesDir() + "/main.js";
     }
 
-    private void buildBundle() throws IOException {
+    private void buildBundle() throws IOException, JSONException {
         final String module = SwitchModuleHelper.currentModule(this);
         ISource[] modules = TextUtils.isEmpty(module) ?
                 new ISource[]{}
