@@ -1,7 +1,7 @@
 package com.dynamicmodules2;
 
 import android.app.Application;
-import android.text.TextUtils;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.dynamicmodules2.bundlebuilder.BundleBuilder;
@@ -19,8 +19,6 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 public class MainApplication extends Application implements ReactApplication {
 
     private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
@@ -31,7 +29,7 @@ public class MainApplication extends Application implements ReactApplication {
 
         @Override
         protected List<ReactPackage> getPackages() {
-            return Arrays.<ReactPackage>asList(
+            return Arrays.asList(
                     new MainReactPackage(),
                     new SwitchPackage()
             );
@@ -42,7 +40,7 @@ public class MainApplication extends Application implements ReactApplication {
             return "index";
         }
 
-        @Nullable
+        @NonNull
         @Override
         protected String getJSBundleFile() {
             return bundleName();
@@ -74,20 +72,19 @@ public class MainApplication extends Application implements ReactApplication {
     }
 
     private void buildBundle() throws IOException, JSONException {
-        final String module = SwitchModuleHelper.currentModule(this);
-        ISource[] modules = TextUtils.isEmpty(module) ?
-                new ISource[]{}
+        final String[] modules = SwitchModuleHelper.currentModules(this);
+        ISource[] sources = new ISource[modules.length];
+        for (int i = 0; i < modules.length; i++) {
+            final String module = modules[i];
+            sources[i] = new ISource() {
+                @Override
+                public InputStream open() throws IOException {
+                    return getAssets().open("bundles/modules/" + module);
+                }
+            };
+        }
 
-                :
-
-                new ISource[]{new ISource() {
-                    @Override
-                    public InputStream open() throws IOException {
-                        return getAssets().open("bundles/modules/" + module);
-                    }
-                }};
-
-        BundleBuilder builder = new BundleBuilder(this, modules, bundleName());
+        BundleBuilder builder = new BundleBuilder(this, sources, bundleName());
         builder.build();
     }
 }

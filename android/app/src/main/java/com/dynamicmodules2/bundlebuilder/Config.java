@@ -11,11 +11,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public class Config {
+class Config {
     private static final String BUNDLE_CONFIG = "bundles/buildconfig.json";
     private int lastBaseIndex;
 
-    public Config(@NonNull Context context) throws IOException, JSONException {
+    Config(@NonNull Context context) throws IOException, JSONException {
         load(context);
     }
 
@@ -33,7 +33,7 @@ public class Config {
         lastBaseIndex = obj.getInt("last_base_index");
     }
 
-    public int getLastBaseIndex() {
+    int getLastBaseIndex() {
         return lastBaseIndex;
     }
 }

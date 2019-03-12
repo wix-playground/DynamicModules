@@ -21,20 +21,25 @@ public class SwitchModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void switchModule() {
-        String module = SwitchModuleHelper.currentModule(getReactApplicationContext());
-        switch (module) {
-            case "":
-                module = "console_module.js";
-                break;
-            case "console_module.js":
-                module = "toast_module.js";
-                break;
-            case "toast_module.js":
-                module = "console_module.js";
-                break;
+        String[] modules = SwitchModuleHelper.currentModules(getReactApplicationContext());
+
+        if (modules.length == 0) {
+            modules = new String[] {"console_module.js"};
+        } else {
+            switch (modules[0]) {
+                case "console_module.js":
+                    modules = new String[] {"toast_module.js"};
+                    break;
+                case "toast_module.js":
+                    modules = new String[] {"advanced_message_module.js", "message_provider_module.js"};
+                    break;
+                case "advanced_message_module.js":
+                    modules = new String[] {"console_module.js"};
+                    break;
+            }
         }
 
-        SwitchModuleHelper.saveCurrentModule(getReactApplicationContext(), module);
+        SwitchModuleHelper.saveCurrentModules(getReactApplicationContext(), modules);
 
         restartApp();
     }

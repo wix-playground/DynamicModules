@@ -1,22 +1,27 @@
 package com.dynamicmodules2;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
-public class SwitchModuleHelper {
-    private static final String PREF_CURRENT_MODULE = "7e8db8f0";
+class SwitchModuleHelper {
+    private static final String PREF_CURRENT_MODULES = "7e8db8f0";
 
     @NonNull
-    public static String currentModule(@NonNull Context context) {
+    static String[] currentModules(@NonNull Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        String value = prefs.getString(PREF_CURRENT_MODULE, "");
-        return value != null ? value : "";
+        String value = prefs.getString(PREF_CURRENT_MODULES, "");
+        //noinspection ConstantConditions
+        return TextUtils.isEmpty(value) ? new String[]{} : value.split(",");
     }
 
-    public static void saveCurrentModule(@NonNull Context context, @NonNull String module) {
+    @SuppressLint("ApplySharedPref")
+    static void saveCurrentModules(@NonNull Context context, @NonNull String... modules) {
+        String modulesString = TextUtils.join(",", modules);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        prefs.edit().putString(PREF_CURRENT_MODULE, module).commit();
+        prefs.edit().putString(PREF_CURRENT_MODULES, modulesString).commit();
     }
 }

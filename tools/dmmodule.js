@@ -116,7 +116,7 @@ function resolveDependencies(originalDeps) {
 
     // if func is not found then add it into resultMap
     addToResultMap(originalIdx);
-    newDeps.push(resultVal[originalIdx].newIdx);
+    newDeps.push(resultMap[originalIdx].newIdx);
   }
 
   return newDeps;
@@ -128,7 +128,7 @@ function createResultBundle(out) {
     if (resultVal) {
       const func = moduleMap[i].func;
       const idx = resultVal.newIdx;
-      const deps = JSON.stringify(resultVal.deps);
+      const deps = `[${resultVal.deps.toString()}]`;
 
       fs.appendFileSync(out, `__d(${func},${idx},${deps});\n`);
     }
