@@ -12,7 +12,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class Config {
-    private static final String BUNDLE_CONFIG = "bundles_old/buildconfig.json";
+    private static final String BUNDLE_CONFIG = "bundles/buildconfig.json";
     private int lastBaseIndex;
 
     public Config(@NonNull Context context) throws IOException, JSONException {

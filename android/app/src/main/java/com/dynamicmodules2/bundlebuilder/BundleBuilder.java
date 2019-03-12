@@ -15,9 +15,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
 public class BundleBuilder {
-    private static final String BUNDLE_BASE = "bundles_old/base.js";
-    private static final String BUNDLE_REG = "bundles_old/reg.js";
-    private static final String BUNDLE_END = "bundles_old/end.js";
+    private static final String BUNDLE_BASE = "bundles/base.js";
+    private static final String BUNDLE_REG = "bundles/reg.js";
+    private static final String BUNDLE_END = "bundles/end.js";
 
     @NonNull
     private Context context;
