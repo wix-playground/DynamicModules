@@ -1,4 +1,5 @@
 const fs = require('fs');
+const minimist = require('minimist');
 
 // copy 'main.jsbundle' to 'out/base.js' line by line
 // exclude reg line (use it to build 'out/reg.js' from template 'reg.dmt')
@@ -24,23 +25,28 @@ function getIdx(line) {
   return parseInt(str);
 }
 
+const args = minimist(process.argv.slice(2));
+
+const bundle = args['bundle'];//'../main.jsbundle';
+const outDir = args['out'];//'./out';
+
 try {
-  fs.unlinkSync('./out/base.js');
+  fs.unlinkSync(`${outDir}/base.js`);
 } catch (e) {
 }
 
 try {
-  fs.unlinkSync('./out/reg.js');
+  fs.unlinkSync(`${outDir}/reg.js`);
 } catch (e) {
 }
 
 try {
-  fs.unlinkSync('./out/end.js');
+  fs.unlinkSync(`${outDir}/end.js`);
 } catch (e) {
 }
 
 try {
-  fs.unlinkSync('./out/buildconfig.json');
+  fs.unlinkSync(`${outDir}buildconfig.json`);
 } catch (e) {
 }
 
@@ -48,18 +54,18 @@ try {
 let maxIdx = 0;
 let modulesRegistratorIdx;
 
-fs.readFileSync('./main.jsbundle').toString().split('\n').forEach((line) => {
+fs.readFileSync(bundle).toString().split('\n').forEach((line) => {
   let idx = getIdx(line);
   if (idx > maxIdx) {
     maxIdx = idx;
   }
 
   if (is__rLine(line)) {
-    fs.appendFileSync('./out/end.js', line + '\n');
+    fs.appendFileSync(`${outDir}/end.js`, line + '\n');
   } else if (isModulesRegistrationLine(line)) {
     modulesRegistratorIdx = idx;
   } else {
-    fs.appendFileSync('./out/base.js', line + '\n');
+    fs.appendFileSync(`${outDir}/base.js`, line + '\n');
   }
 });
 
@@ -67,11 +73,11 @@ fs.readFileSync('./main.jsbundle').toString().split('\n').forEach((line) => {
 const config = {
   last_base_index: maxIdx
 };
-fs.appendFileSync('./out/buildconfig.json', JSON.stringify(config));
+fs.appendFileSync(`${outDir}/buildconfig.json`, JSON.stringify(config));
 
 // create 'reg.js'
 let regString = fs.readFileSync('./templates/reg.dmt').toString();
 regString = regString.replace('$__REG_INDEX', modulesRegistratorIdx.toString());
-fs.appendFileSync('./out/reg.js', regString);
+fs.appendFileSync(`${outDir}/reg.js`, regString);
 
 
