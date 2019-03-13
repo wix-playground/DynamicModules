@@ -4,14 +4,19 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 
 public class SwitchModule extends ReactContextBaseJavaModule {
-    public SwitchModule(ReactApplicationContext reactContext) {
+    @NonNull
+    private OnBundleChangeListener onBundleChangeListener;
+
+    public SwitchModule(ReactApplicationContext reactContext, @NonNull OnBundleChangeListener onBundleChangeListener) {
         super(reactContext);
+        this.onBundleChangeListener = onBundleChangeListener;
     }
 
     @Override
@@ -41,9 +46,14 @@ public class SwitchModule extends ReactContextBaseJavaModule {
 
         SwitchModuleHelper.saveCurrentModules(getReactApplicationContext(), modules);
 
-        restartApp();
+        notifyApp();
     }
 
+    private void notifyApp() {
+        onBundleChangeListener.onBundleChangeListener();
+    }
+
+    @SuppressWarnings("unused")
     private void restartApp() {
         Context context = getReactApplicationContext();
         Intent activity = new Intent(context, MainActivity.class);

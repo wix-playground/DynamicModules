@@ -1,7 +1,10 @@
 package com.dynamicmodules2;
 
 import android.app.Application;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.v4.util.ArraySet;
 import android.util.Log;
 
 import com.dynamicmodules2.bundlebuilder.BundleBuilder;
@@ -14,12 +17,16 @@ import com.facebook.soloader.SoLoader;
 
 import org.json.JSONException;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
-public class MainApplication extends Application implements ReactApplication {
+public class MainApplication extends Application implements ReactApplication, OnBundleChangeListener {
+
+    private Set<OnBundleChangeListener> onBundleChangeListeners;
 
     private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
         @Override
@@ -31,7 +38,7 @@ public class MainApplication extends Application implements ReactApplication {
         protected List<ReactPackage> getPackages() {
             return Arrays.asList(
                     new MainReactPackage(),
-                    new SwitchPackage()
+                    new SwitchPackage(MainApplication.this)
             );
         }
 
@@ -56,12 +63,18 @@ public class MainApplication extends Application implements ReactApplication {
     public void onCreate() {
         super.onCreate();
         Log.d("DynamicModules", "App.onCreate()");
-        try {
-            buildBundle();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
+
+        onBundleChangeListeners = new ArraySet<>();
+
+        File mainBundleFile = new File(bundleName());
+        if (!mainBundleFile.exists()) {
+            try {
+                buildBundle();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
 
         SoLoader.init(this, /* native exopackage */ false);
@@ -87,4 +100,35 @@ public class MainApplication extends Application implements ReactApplication {
         BundleBuilder builder = new BundleBuilder(this, sources, bundleName());
         builder.build();
     }
+
+    @Override
+    public void onBundleChangeListener() {
+        try {
+            buildBundle();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                mReactNativeHost.clear();
+                for (OnBundleChangeListener listener : onBundleChangeListeners) {
+                    listener.onBundleChangeListener();
+                }
+            }
+        });
+
+    }
+
+    void registerOnBundleChangeListener(@NonNull OnBundleChangeListener listener) {
+        onBundleChangeListeners.add(listener);
+    }
+
+    void unregisterOnBundleChangeListener(@NonNull OnBundleChangeListener listener) {
+        onBundleChangeListeners.remove(listener);
+    }
+
 }
