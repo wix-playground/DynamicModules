@@ -1,2 +1,2 @@
-__d(function(g,r,i,a,m,e,d){function o(){return{name:function(){return'MessageProviderModule'},get:function(){return{body:'Hi all!',from:'Message Provider Module'}}}}Object.defineProperty(e,"__esModule",{value:!0}),e.default=o,e.register=function(){g.moduleResolver.register(o,['IMessageProvider'])}},$__dmIdx + 0,[]);
-$__dmRegIdxArray.push($__dmIdx);$__dmIdx += 1;
+__d(function(g,r,i,a,m,e,d){function o(){return{name:function(){return'MessageProviderModule'},get:function(){return{body:'Hi all!',from:'Message Provider Module'}}}}Object.defineProperty(e,"__esModule",{value:!0}),e.default=o,e.register=function(){g.moduleResolver.register(o,['IMessageProvider'])}},$__dmIdx+0,[]);
+$__dmRegIdxArray.push($__dmIdx+0);$__dmIdx+=1;

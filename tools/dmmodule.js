@@ -33,10 +33,15 @@ try {
 
 const baseMap = {}; // func -> idx
 const moduleMap = []; // idx -> {func, dependencies}
+const moduleConfig = {entryPoint: 0};
 const resultMap = []; // originalIdx -> {newIdx, newDeps} (newIdx is '$__dmIdx+originalIndex')
 
 function is__dLine(line) {
   return line.startsWith('__d(');
+}
+
+function is__rLine(line) {
+  return line.startsWith('__r(');
 }
 
 function loadBaseMap(base) {
@@ -66,26 +71,31 @@ function loadModuleMap(module) {
     };
   }
 
-  fs.appendFileSync(tmpModule__d, 'module.exports = function (moduleMap) {\n');
+  function __r(idx) {
+    moduleConfig.entryPoint = idx;
+  }
+
+  fs.appendFileSync(tmpModule__d, 'module.exports = function (moduleMap, moduleConfig) {\n');
   fs.appendFileSync(tmpModule__d, __d.toString() + '\n');
+  fs.appendFileSync(tmpModule__d, __r.toString() + '\n');
 
   fs.readFileSync(bundle).toString().split('\n').forEach((line) => {
-    if (is__dLine(line)) {
+    if (is__dLine(line) || is__rLine(line)) {
       fs.appendFileSync(tmpModule__d, line + '\n');
     }
   });
 
   fs.appendFileSync(tmpModule__d, '}');
 
-  require(tmpModule__d)(moduleMap);
+  require(tmpModule__d)(moduleMap, moduleConfig);
 }
 
 function evalResultMap() {
-  addToResultMap(0);
+  addToResultMap(moduleConfig.entryPoint);
 }
 
 function addToResultMap(idx) {
-  const newIdx = `$__dmIdx + ${idx}`;
+  const newIdx = `$__dmIdx+${idx}`;
 
   resultMap[idx] = {
     newIdx,
@@ -134,7 +144,7 @@ function createResultBundle(out) {
     }
   }
 
-  fs.appendFileSync(out, `$__dmRegIdxArray.push($__dmIdx);$__dmIdx += ${resultMap.length};`);
+  fs.appendFileSync(out, `$__dmRegIdxArray.push($__dmIdx+${moduleConfig.entryPoint});$__dmIdx+=${resultMap.length};`);
 }
 
 // =========
