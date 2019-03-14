@@ -10,6 +10,8 @@ const jsModulesDir = args['js-modules-dir'];
 const outDir = args['out'];
 const jsModulesOutDir = `${outDir}/js-modules`;
 
+const base__d = `${outDir}/__base__d.js`;
+
 function prepare() {
   try {
     fs.unlinkSync(`${outDir}/base_ram.js`);
@@ -40,6 +42,21 @@ function createJsModules() {
 
   fsExtra.copySync(`${jsModulesDir}/UNBUNDLE`, `${jsModulesOutDir}/UNBUNDLE`);
 
+  function __d(func, idx, dependencies) {
+    moduleMap[idx] = {
+      func: func.toString(),
+      deps: dependencies
+    };
+  }
+
+  function __r(idx) {
+    moduleConfig.entryPoint = idx;
+  }
+
+  fs.appendFileSync(base__d, 'module.exports = function (moduleMap, moduleConfig) {\n');
+  fs.appendFileSync(base__d, __d.toString() + '\n');
+  fs.appendFileSync(base__d, __r.toString() + '\n');
+
   const files = fs.readdirSync(jsModulesDir);
   const jsFiles = files.filter((file) => {
     return path.extname(file) === '.js';
@@ -54,7 +71,9 @@ function createJsModules() {
       result.reg_index = parseInt(idx);
     } else {
       const fileName = path.basename(jsFile);
-      fsExtra.copySync(`${jsModulesDir}/${jsFile}`, `${jsModulesOutDir}/${fileName}`);
+      const content = fs.readFileSync(`${jsModulesDir}/${jsFile}`);
+      fs.appendFileSync(`${jsModulesOutDir}/${fileName}`, content);
+      fs.appendFileSync(base__d, content + '\n');
       idx = path.basename(jsFile, '.js');
     }
 
@@ -62,6 +81,8 @@ function createJsModules() {
       result.last_base_index = parseInt(idx);
     }
   }
+
+  fs.appendFileSync(base__d, '}');
 
   return result;
 }
