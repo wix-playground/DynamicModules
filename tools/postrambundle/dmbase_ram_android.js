@@ -7,7 +7,7 @@ const args = minimist(process.argv.slice(2));
 
 const bundle = args['bundle'];
 const jsModulesDir = args['js-modules-dir'];
-const outDir = args['out'];
+const outDir = args['out-dir'];
 const jsModulesOutDir = `${outDir}/js-modules`;
 
 const base__d = `${outDir}/__base__d.js`;
@@ -28,6 +28,11 @@ function prepare() {
   } else {
     fsExtra.emptyDirSync(jsModulesOutDir);
   }
+
+  try {
+    fs.unlinkSync(`${outDir}/__base__d.js`);
+  } catch (e) {
+  }
 }
 
 function createBase() {
@@ -43,19 +48,11 @@ function createJsModules() {
   fsExtra.copySync(`${jsModulesDir}/UNBUNDLE`, `${jsModulesOutDir}/UNBUNDLE`);
 
   function __d(func, idx, dependencies) {
-    moduleMap[idx] = {
-      func: func.toString(),
-      deps: dependencies
-    };
+    baseMap[func.toString()] = idx;
   }
 
-  function __r(idx) {
-    moduleConfig.entryPoint = idx;
-  }
-
-  fs.appendFileSync(base__d, 'module.exports = function (moduleMap, moduleConfig) {\n');
+  fs.appendFileSync(base__d, 'module.exports = function (baseMap) {\n');
   fs.appendFileSync(base__d, __d.toString() + '\n');
-  fs.appendFileSync(base__d, __r.toString() + '\n');
 
   const files = fs.readdirSync(jsModulesDir);
   const jsFiles = files.filter((file) => {

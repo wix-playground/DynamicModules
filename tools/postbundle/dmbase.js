@@ -27,8 +27,8 @@ function getIdx(line) {
 
 const args = minimist(process.argv.slice(2));
 
-const bundle = args['bundle'];//'../main.jsbundle';
-const outDir = args['out'];//'./out';
+const bundle = args['bundle'];
+const outDir = args['out-dir'];
 
 try {
   fs.unlinkSync(`${outDir}/base.js`);
