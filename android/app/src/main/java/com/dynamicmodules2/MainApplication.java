@@ -85,19 +85,21 @@ public class MainApplication extends Application implements ReactApplication, On
     }
 
     private void buildBundle() throws IOException, JSONException {
-        final String[] modules = SwitchModuleHelper.currentModules(this);
-        ISource[] sources = new ISource[modules.length];
-        for (int i = 0; i < modules.length; i++) {
-            final String module = modules[i];
-            sources[i] = new ISource() {
-                @Override
-                public InputStream open() throws IOException {
-                    return getAssets().open("bundle/modules/" + module);
-                }
-            };
-        }
+        final String[] moduleNames = SwitchModuleHelper.currentModules(this);
+        ISource modules = new ISource() {
+            @NonNull
+            @Override
+            public String[] names() {
+                return moduleNames;
+            }
 
-        PlainBundleBuilder builder = new PlainBundleBuilder(this, sources, bundleName());
+            @Override
+            public InputStream open(@NonNull String name) throws IOException {
+                return getAssets().open("bundle/modules/" + name);
+            }
+        };
+
+        PlainBundleBuilder builder = new PlainBundleBuilder(this, modules, bundleName());
         builder.build();
     }
 

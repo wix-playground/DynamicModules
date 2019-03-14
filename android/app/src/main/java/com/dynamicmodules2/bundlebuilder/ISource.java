@@ -1,8 +1,14 @@
 package com.dynamicmodules2.bundlebuilder;
 
+import android.support.annotation.NonNull;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 public interface ISource {
-    InputStream open() throws IOException;
+    @NonNull
+    String[] names();
+
+    InputStream open(@NonNull String name) throws IOException;
 }

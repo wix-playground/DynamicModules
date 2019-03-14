@@ -1,4 +1,4 @@
-package com.dynamicmodules2.bundlebuilder.plain;
+package com.dynamicmodules2.bundlebuilder.ram;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -11,11 +11,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-class Config {
-    private static final String BUNDLE_CONFIG = "bundle/buildconfig.json";
+public class RamConfig {
+    private static final String BUNDLE_CONFIG = "rambundle/buildconfig.json";
     private int lastBaseIndex;
+    private int regIndex;
 
-    Config(@NonNull Context context) throws IOException, JSONException {
+    RamConfig(@NonNull Context context) throws IOException, JSONException {
         load(context);
     }
 
@@ -31,9 +32,14 @@ class Config {
 
         JSONObject obj = new JSONObject(sb.toString());
         lastBaseIndex = obj.getInt("last_base_index");
+        regIndex = obj.getInt("reg_index");
     }
 
     int getLastBaseIndex() {
         return lastBaseIndex;
+    }
+
+    int getRegIndex() {
+        return regIndex;
     }
 }

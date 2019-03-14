@@ -25,7 +25,7 @@ public class PlainBundleBuilder {
     private Context context;
 
     @NonNull
-    private ISource[] modules;
+    private ISource modules;
 
     private String preparedRegString;
     private String preparedModulesString;
@@ -34,14 +34,14 @@ public class PlainBundleBuilder {
     @NonNull
     private String dst;
 
-    public PlainBundleBuilder(@NonNull Context context, @NonNull ISource[] modules, @NonNull String dst) {
+    public PlainBundleBuilder(@NonNull Context context, @NonNull ISource modules, @NonNull String dst) {
         this.context = context;
         this.modules = modules;
         this.dst = dst;
     }
 
     public void build() throws IOException, JSONException {
-        Config config = new Config(context);
+        PlainConfig config = new PlainConfig(context);
 
         FileOutputStream out = copyBaseToDst();
         processModules();
@@ -83,8 +83,8 @@ public class PlainBundleBuilder {
     private void processModules() throws IOException {
         StringBuilder sb = new StringBuilder();
 
-        for (ISource source : modules) {
-            InputStream is = source.open();
+        for (String moduleName : modules.names()) {
+            InputStream is = modules.open(moduleName);
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             String str;
             while ((str = br.readLine()) != null) {
@@ -112,7 +112,7 @@ public class PlainBundleBuilder {
     }
 
     @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
-    private void joinAll(@NonNull FileOutputStream out, @NonNull Config config) throws IOException {
+    private void joinAll(@NonNull FileOutputStream out, @NonNull PlainConfig config) throws IOException {
         OutputStreamWriter writer = new OutputStreamWriter(out);
 
         writer.append("var $__dmRegIdxArray = [];");
