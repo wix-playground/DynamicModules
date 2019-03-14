@@ -7,7 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.util.ArraySet;
 import android.util.Log;
 
-import com.dynamicmodules2.bundlebuilder.BundleBuilder;
+import com.dynamicmodules2.bundlebuilder.plain.PlainBundleBuilder;
 import com.dynamicmodules2.bundlebuilder.ISource;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
@@ -92,12 +92,12 @@ public class MainApplication extends Application implements ReactApplication, On
             sources[i] = new ISource() {
                 @Override
                 public InputStream open() throws IOException {
-                    return getAssets().open("bundles/modules/" + module);
+                    return getAssets().open("bundle/modules/" + module);
                 }
             };
         }
 
-        BundleBuilder builder = new BundleBuilder(this, sources, bundleName());
+        PlainBundleBuilder builder = new PlainBundleBuilder(this, sources, bundleName());
         builder.build();
     }
 

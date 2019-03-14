@@ -1,8 +1,10 @@
-package com.dynamicmodules2.bundlebuilder;
+package com.dynamicmodules2.bundlebuilder.plain;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
+
+import com.dynamicmodules2.bundlebuilder.ISource;
 
 import org.json.JSONException;
 
@@ -14,10 +16,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
-public class BundleBuilder {
-    private static final String BUNDLE_BASE = "bundles/base.js";
-    private static final String BUNDLE_REG = "bundles/reg.js";
-    private static final String BUNDLE_END = "bundles/end.js";
+public class PlainBundleBuilder {
+    private static final String BUNDLE_BASE = "bundle/base.js";
+    private static final String BUNDLE_REG = "bundle/reg.js";
+    private static final String BUNDLE_END = "bundle/end.js";
 
     @NonNull
     private Context context;
@@ -32,7 +34,7 @@ public class BundleBuilder {
     @NonNull
     private String dst;
 
-    public BundleBuilder(@NonNull Context context, @NonNull ISource[] modules, @NonNull String dst) {
+    public PlainBundleBuilder(@NonNull Context context, @NonNull ISource[] modules, @NonNull String dst) {
         this.context = context;
         this.modules = modules;
         this.dst = dst;
@@ -128,7 +130,7 @@ public class BundleBuilder {
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
         String str;
         while ((str = br.readLine()) != null) {
-            Log.d("BundleBuilder", str);
+            Log.d("PlainBundleBuilder", str);
         }
         br.close();
     }

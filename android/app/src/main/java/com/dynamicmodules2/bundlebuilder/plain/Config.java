@@ -1,4 +1,4 @@
-package com.dynamicmodules2.bundlebuilder;
+package com.dynamicmodules2.bundlebuilder.plain;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -12,7 +12,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 class Config {
-    private static final String BUNDLE_CONFIG = "bundles/buildconfig.json";
+    private static final String BUNDLE_CONFIG = "bundle/buildconfig.json";
     private int lastBaseIndex;
 
     Config(@NonNull Context context) throws IOException, JSONException {

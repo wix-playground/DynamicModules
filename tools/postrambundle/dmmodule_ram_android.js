@@ -1,12 +1,3 @@
-// bundle file should be used to find entry point
-
-// create buildconfig.json : {"entry_index":...}
-
-// for every js-modules/ file:
-//    filter if it should be added into result (see dbmodule.js)
-//    add $__dmIdx=$__BASE_INDEX
-//    generalize index and deps in __d() func
-
 const fs = require('fs');
 const fsExtra = require('fs-extra');
 const path = require('path');
@@ -104,14 +95,6 @@ function addToResultMap(idx) {
   };
 
   const originalDeps = moduleMap[idx].deps;
-
-  // console.log('oroginalDeps: ' + originalDeps.toString());
-  // let func = moduleMap[originalDeps[0]].func.trim();
-  // console.log('finc: ' + func);
-  // const baseIdx = baseMap[func];
-  // console.log('basIdx: ' + baseIdx);
-  // return;
-
   resultMap[idx].deps = resolveDependencies(originalDeps);
 }
 
@@ -160,35 +143,9 @@ function createResultBundle() {
   fs.appendFileSync(`${outDir}/buildconfig.json`, JSON.stringify(moduleConfig));
 }
 
-// =========
-
-function consoleBaseMap() {
-  for (let func in baseMap) {
-    if (baseMap[func] === 13) {
-      console.log(func + ' | ' + baseMap[func]);
-      break;
-    }
-  }
-}
-
-function consoleModuleMap() {
-  for (let i = 0; i < moduleMap.length; i++) {
-    if (moduleMap[i]) {
-      console.log(`${i} | ${moduleMap[i].func} | ${moduleMap[i].deps}`);
-    }
-  }
-}
-
-// =========
 
 loadBaseMap();
-
-//consoleBaseMap();
-
 loadModuleMap();
-
-//consoleModuleMap();
-
 evalResultMap();
 createResultBundle();
 

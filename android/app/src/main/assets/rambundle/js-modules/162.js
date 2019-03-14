@@ -1,0 +1,1 @@
+__d(function(g,r,i,a,m,e,d){'use strict';g.__fetchSegment=function(t,n,c){var s=r(d[0]).SegmentFetcher;if(!s)throw new Error("SegmentFetcher is missing. Please ensure that it is included as a NativeModule.");s.fetchSegment(t,n,function(t){if(t){var n=new Error(t.message);n.code=t.code,c(n)}c(null)})}},162,[16]);
