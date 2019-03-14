@@ -46,7 +46,7 @@ try {
 }
 
 try {
-  fs.unlinkSync(`${outDir}buildconfig.json`);
+  fs.unlinkSync(`${outDir}/buildconfig.json`);
 } catch (e) {
 }
 
