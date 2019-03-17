@@ -12,7 +12,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class RamConfig {
-    private static final String BUNDLE_CONFIG = "rambundle/buildconfig.json";
+    public static final String BUNDLE_CONFIG = "rambundle/buildconfig.json";
     private int lastBaseIndex;
     private int regIndex;
 

@@ -2,13 +2,17 @@ package com.dynamicmodules2.bundlebuilder.ram;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import com.dynamicmodules2.bundlebuilder.ISource;
 
 import org.json.JSONException;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -49,8 +53,8 @@ public class RamBundleBuilder {
         copyFromAssets(BUNDLE_BASE_PATH, dstDir + "/" + BUNDLE_BASE);
     }
 
-    private void createBundleConfig() {
-
+    private void createBundleConfig() throws IOException {
+        copyFromAssets(RamConfig.BUNDLE_CONFIG, dstDir + "/" + BUNDLE_CONFIG);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -68,10 +72,38 @@ public class RamBundleBuilder {
         }
     }
 
-    private void processModules(@NonNull RamConfig config) {
+    private void processModules(@NonNull RamConfig config) throws IOException {
+        String[] moduleEntryPoints = new String[modules.length];
 
+        // process modules
 
         // special process for reg after all modules are copied
+        processRegFile(config, moduleEntryPoints);
+    }
+
+    @SuppressWarnings({"TryFinallyCanBeTryWithResources", "ResultOfMethodCallIgnored"})
+    private void processRegFile(@NonNull RamConfig config, @NonNull String[] moduleEntryPoints) throws IOException {
+        String jsModulesDstDir = dstDir + "/" + BUNDLE_JS_MODULES_DIR;
+        String path = jsModulesDstDir + "/" + config.getRegIndex() + ".js";
+        String entryPointsString = TextUtils.join(",", moduleEntryPoints);
+
+        StringBuilder sb = new StringBuilder();
+
+        BufferedReader br = new BufferedReader(new FileReader(path));
+        try {
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+                line.replace("$__DM_MODULES_REG_INDEX_ARRAY", entryPointsString);
+                sb.append("\n");
+            }
+        } finally {
+            br.close();
+        }
+
+        FileWriter fw = new FileWriter(path);
+        fw.write(sb.toString());
+        fw.close();
     }
 
     @SuppressWarnings("TryFinallyCanBeTryWithResources")

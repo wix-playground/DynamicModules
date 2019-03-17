@@ -8,4 +8,4 @@ __d(function (g, r, i, a, m, e, d) {
   for (var i = 0; i < d.length; i++) {
     t.push(r(d[i]));
   }
-}, $__REG_INDEX, $__MODULES_REG_INDEX_ARRAY);
+}, $__REG_INDEX, $__DM_MODULES_REG_INDEX_ARRAY);
