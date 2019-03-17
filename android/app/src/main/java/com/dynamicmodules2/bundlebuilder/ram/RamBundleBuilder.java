@@ -15,6 +15,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 
 public class RamBundleBuilder {
     private static final String ASSETS_BUNDLE_DIR = "rambundle/";
@@ -41,7 +42,7 @@ public class RamBundleBuilder {
     }
 
     public void build() throws IOException, JSONException {
-        RamConfig config = new RamConfig(context);
+        RamBaseConfig config = new RamBaseConfig(context);
 
         processBase();
         createBundleConfig();
@@ -54,7 +55,7 @@ public class RamBundleBuilder {
     }
 
     private void createBundleConfig() throws IOException {
-        copyFromAssets(RamConfig.BUNDLE_CONFIG, dstDir + "/" + BUNDLE_CONFIG);
+        copyFromAssets(RamBaseConfig.BUNDLE_CONFIG, dstDir + "/" + BUNDLE_CONFIG);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -72,17 +73,57 @@ public class RamBundleBuilder {
         }
     }
 
-    private void processModules(@NonNull RamConfig config) throws IOException {
+    @SuppressWarnings({"ResultOfMethodCallIgnored", "TryFinallyCanBeTryWithResources"})
+    private void processModules(@NonNull RamBaseConfig config) throws IOException, JSONException {
         String[] moduleEntryPoints = new String[modules.length];
 
-        // process modules
+        // process modules -> for every module:
+        //   load config
+        //   copy js-modules/*.js replacing "$__DM_BASE_INDEX" with its current value
+
+        String jsModulesDstDir = dstDir + "/" + BUNDLE_JS_MODULES_DIR;
+
+        int dmBaseIndex = config.getLastBaseIndex() + 1;
+        String dmBaseIndexString = String.valueOf(dmBaseIndex);
+
+        for (int i = 0; i < modules.length; i++) {
+            ISource module = modules[i];
+            RamModuleConfig moduleConfig = new RamModuleConfig(context, module);
+            moduleEntryPoints[i] = String.valueOf(dmBaseIndex + moduleConfig.getEntryPoint());
+
+            for (String filename : module.names()) {
+                StringBuilder sb = new StringBuilder();
+
+                BufferedReader br = new BufferedReader(new InputStreamReader(module.open(filename)));
+                try {
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        sb.append(line);
+                        line.replace("$__DM_BASE_INDEX", dmBaseIndexString);
+                    }
+                } finally {
+                    br.close();
+                }
+
+                int start = filename.lastIndexOf("/") + 1;
+                int end = filename.lastIndexOf(".");
+                String name = filename.substring(start, end);
+                name = String.valueOf(Integer.parseInt(name) + dmBaseIndex) + ".js";
+
+                FileWriter fw = new FileWriter(jsModulesDstDir + "/" + name);
+                fw.write(sb.toString());
+                fw.close();
+            }
+        }
 
         // special process for reg after all modules are copied
         processRegFile(config, moduleEntryPoints);
+
+        // update BUNDLE_CONFIG ???
     }
 
     @SuppressWarnings({"TryFinallyCanBeTryWithResources", "ResultOfMethodCallIgnored"})
-    private void processRegFile(@NonNull RamConfig config, @NonNull String[] moduleEntryPoints) throws IOException {
+    private void processRegFile(@NonNull RamBaseConfig config, @NonNull String[] moduleEntryPoints) throws IOException {
         String jsModulesDstDir = dstDir + "/" + BUNDLE_JS_MODULES_DIR;
         String path = jsModulesDstDir + "/" + config.getRegIndex() + ".js";
         String entryPointsString = TextUtils.join(",", moduleEntryPoints);
@@ -108,17 +149,23 @@ public class RamBundleBuilder {
 
     @SuppressWarnings("TryFinallyCanBeTryWithResources")
     private void copyFromAssets(@NonNull String src, @NonNull String dst) throws IOException {
-        InputStream in = context.getAssets().open(src);
-        FileOutputStream out = new FileOutputStream(dst);
+        InputStream in = null;
+        FileOutputStream out = null;
         try {
+            in = context.getAssets().open(src);
+            out  = new FileOutputStream(dst);
             byte[] buf = new byte[1024];
             int len;
             while ((len = in.read(buf)) > 0) {
                 out.write(buf, 0, len);
             }
         } finally {
-            in.close();
-            out.close();
+            if (in != null) {
+                in.close();
+            }
+            if (out != null) {
+                out.close();
+            }
         }
     }
 }

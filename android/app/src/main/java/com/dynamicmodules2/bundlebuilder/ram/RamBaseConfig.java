@@ -11,12 +11,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public class RamConfig {
-    public static final String BUNDLE_CONFIG = "rambundle/buildconfig.json";
+class RamBaseConfig {
+    static final String BUNDLE_CONFIG = "rambundle/buildconfig.json";
     private int lastBaseIndex;
     private int regIndex;
 
-    RamConfig(@NonNull Context context) throws IOException, JSONException {
+    RamBaseConfig(@NonNull Context context) throws IOException, JSONException {
         load(context);
     }
 
