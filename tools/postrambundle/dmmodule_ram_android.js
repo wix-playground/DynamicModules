@@ -33,7 +33,7 @@ if (!fs.existsSync(jsModulesOutDir)) {
 const baseMap = {}; // func -> idx
 const moduleMap = []; // idx -> {func, dependencies}
 const moduleConfig = {entry_point: 0, last_module_index: 0};
-const resultMap = []; // originalIdx -> {newIdx, newDeps} (newIdx is '$__dmIdx+originalIndex')
+const resultMap = []; // originalIdx -> {newIdx, newDeps} (newIdx is '$__DM_BASE_INDEX+originalIndex')
 
 function is__rLine(line) {
   return line.startsWith('__r(');
@@ -87,7 +87,7 @@ function evalResultMap() {
 }
 
 function addToResultMap(idx) {
-  const newIdx = `$__dmIdx+${idx}`;
+  const newIdx = `$__DM_BASE_INDEX+${idx}`;
 
   resultMap[idx] = {
     newIdx,
@@ -135,7 +135,6 @@ function createResultBundle() {
       moduleConfig.last_module_index = i;
 
       const out = `${jsModulesOutDir}/${i}.js`;
-      fs.appendFileSync(out, '$__dmIdx=$__BASE_INDEX;\n');
       fs.appendFileSync(out, `__d(${func},${idx},${deps});`);
     }
   }
