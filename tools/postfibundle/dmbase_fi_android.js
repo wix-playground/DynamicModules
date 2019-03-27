@@ -14,7 +14,7 @@ const base__d = `${outDir}/__base__d.js`;
 
 function prepare() {
   try {
-    fs.unlinkSync(`${outDir}/base_ram.js`);
+    fs.unlinkSync(`${outDir}/base_fi.js`);
   } catch (e) {
   }
 
@@ -36,7 +36,7 @@ function prepare() {
 }
 
 function createBase() {
-  fsExtra.copySync(bundle, `${outDir}/base_ram.js`);
+  fsExtra.copySync(bundle, `${outDir}/base_fi.js`);
 }
 
 function createJsModules() {

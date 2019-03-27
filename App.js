@@ -35,7 +35,7 @@ export default class App extends Component<Props> {
   }
 
   static _showMessage() {
-    let module = global.moduleResolver.resolve('IMessage');
+    const module = global.moduleResolver.resolve('IMessage');
     if (module) {
       module.message();
     }
