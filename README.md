@@ -59,7 +59,7 @@ node dmmodule.js --base={base_js_file} --bundle={module_jsbundle_file_name} --ou
 ```
 
 ## RAM JSBundle transformation
-Not exist yet
+// TODO
 
 
 ## Client-side usage
@@ -90,5 +90,5 @@ Not exist yet
 ```
 
 ### iOS
-Not exist yet
+// TODO
 
