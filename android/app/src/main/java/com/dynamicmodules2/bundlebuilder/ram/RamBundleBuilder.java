@@ -71,7 +71,7 @@ public class RamBundleBuilder {
         int offset = baseHeader.length;
         for (RamModule module : ramModules) {
             byte[] moduleHeader = module.getHeader();
-            System.arraycopy(moduleHeader, 0, header, offset, offset + moduleHeader.length);
+            System.arraycopy(moduleHeader, 0, header, offset, moduleHeader.length);
             offset += moduleHeader.length;
         }
     }
@@ -119,21 +119,21 @@ public class RamBundleBuilder {
     }
 
     private void createBody() throws IOException {
-        StringBuilder sb = new StringBuilder();
-        createRegIdxArray(sb);
+        body = new StringBuilder();
+        createRegIdxArray(body);
 
-        int delta = sb.length();
+        int delta = body.length();
 
-        sb.append(ramBase.getBody());
+        body.append(ramBase.getBody());
 
         // set startupCodeLength
-        RamHeaderUtils.setIntByOffset(header, RamHeaderUtils.offset(2), sb.length());
+        RamHeaderUtils.setIntByOffset(header, RamHeaderUtils.offset(2), body.length());
 
         // ramBase body
         int numModules = (ramBase.getHeaderSize() - 3 * 4) / (2 * 4);
         deltaOffsets(3, 3 + numModules * 2, delta);
 
-        delta = sb.length();
+        delta = body.length();
         int dmStartIndex = numModules;
         String dmStartIndexName = "\\$__dmStartIndex";
         int dmStartIndexNameLength = dmStartIndexName.length();

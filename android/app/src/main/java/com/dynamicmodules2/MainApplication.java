@@ -1,15 +1,16 @@
 package com.dynamicmodules2;
 
 import android.app.Application;
-import android.content.res.AssetFileDescriptor;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.util.ArraySet;
 import android.util.Log;
 
-import com.dynamicmodules2.bundlebuilder.plain.PlainBundleBuilder;
+import com.dynamicmodules2.bundlebuilder.AssetsSource;
 import com.dynamicmodules2.bundlebuilder.ISource;
+import com.dynamicmodules2.bundlebuilder.plain.PlainBundleBuilder;
+import com.dynamicmodules2.bundlebuilder.ram.RamBundleBuilder;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
@@ -20,12 +21,13 @@ import org.json.JSONException;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
 public class MainApplication extends Application implements ReactApplication, OnBundleChangeListener {
+
+    private boolean BUILD_RAM_BUNDLE = true;
 
     private Set<OnBundleChangeListener> onBundleChangeListeners;
 
@@ -82,33 +84,39 @@ public class MainApplication extends Application implements ReactApplication, On
     }
 
     private String bundleName() {
-        return getFilesDir() + "/main.js";
+        if (BUILD_RAM_BUNDLE) {
+            return getFilesDir() + "/ram.jsbundle";
+        } else {
+            return getFilesDir() + "/main.js";
+        }
     }
 
     private void buildBundle() throws IOException, JSONException {
-        final String[] moduleNames = SwitchModuleHelper.currentModules(this);
-        ISource modules = new ISource() {
-            @NonNull
-            @Override
-            public String[] names() {
-                return moduleNames;
-            }
+        if (BUILD_RAM_BUNDLE) {
+            buildRamBundle();
+        } else {
+            buildPlainBundle();
+        }
+    }
 
-            @Override
-            public InputStream open(@NonNull String name) throws IOException {
-                return getAssets().open("bundle/modules/" + name);
-            }
-
-            @Override
-            public long size(@NonNull String name) throws IOException {
-                AssetFileDescriptor fd = getAssets().openFd("bundle/modules/" + name);
-                long size = fd.getLength();
-                fd.close();
-                return size;
-            }
-        };
-
+    private void buildPlainBundle() throws IOException, JSONException {
+        String[] moduleNames = SwitchModuleHelper.currentModules(this);
+        ISource modules = new AssetsSource(this, "bundle/modules", moduleNames);
         PlainBundleBuilder builder = new PlainBundleBuilder(this, modules, bundleName());
+        builder.build();
+    }
+
+    private void buildRamBundle() throws IOException, JSONException {
+        ISource base = new AssetsSource(this, "rambundle", new String[] {"header", "body"});
+
+        String[] moduleNames = SwitchModuleHelper.currentModules(this);
+        ISource[] modules = new ISource[moduleNames.length];
+        for (int i = 0; i < modules.length; i++) {
+            modules[i] = new AssetsSource(this, "rambundle/modules/" + moduleNames[i],
+                    new String[] {"header", "body", "config"});
+        }
+
+        RamBundleBuilder builder = new RamBundleBuilder(base, modules, bundleName());
         builder.build();
     }
 

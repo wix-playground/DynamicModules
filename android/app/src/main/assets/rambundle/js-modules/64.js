@@ -1,1 +1,0 @@
-__d(function(g,r,i,a,m,e,d){'use strict';var t=r(d[0]).DeviceInfo;r(d[1])(t,'DeviceInfo native module is not installed correctly'),m.exports=t},64,[16,14]);

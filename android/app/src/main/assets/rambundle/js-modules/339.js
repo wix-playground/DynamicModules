@@ -1,1 +1,0 @@
-__d(function(g,r,i,a,m,e,d){'use strict';var t=r(d[0]).Clipboard;m.exports={getString:function(){return t.getString()},setString:function(n){t.setString(n)}}},339,[16]);

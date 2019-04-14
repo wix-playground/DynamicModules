@@ -1,1 +1,0 @@
-__d(function(g,r,i,a,m,e,d){'use strict';var t=r(d[0]).polyfillObjectProperty,o=g.navigator;void 0===o&&(g.navigator=o={}),t(o,'product',function(){return'ReactNative'}),t(o,'geolocation',function(){return r(d[1])})},147,[91,148]);

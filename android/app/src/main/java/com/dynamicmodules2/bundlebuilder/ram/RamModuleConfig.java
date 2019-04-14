@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public class RamModuleConfig {
+class RamModuleConfig {
     private static final String CONFIG_FILE = "config";
     private int entryPoint;
 
@@ -31,10 +31,10 @@ public class RamModuleConfig {
         inputStream.close();
 
         JSONObject obj = new JSONObject(sb.toString());
-        entryPoint = obj.getInt("entry_point");
+        entryPoint = obj.getInt("entryPoint");
     }
 
-    public int getEntryPoint() {
+    int getEntryPoint() {
         return entryPoint;
     }
 }

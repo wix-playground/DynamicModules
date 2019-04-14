@@ -29,17 +29,17 @@ public class SwitchModule extends ReactContextBaseJavaModule {
         String[] modules = SwitchModuleHelper.currentModules(getReactApplicationContext());
 
         if (modules.length == 0) {
-            modules = new String[] {"console_module.js"};
+            modules = new String[]{"toast_module"}; //{"console_module"};
         } else {
             switch (modules[0]) {
-                case "console_module.js":
-                    modules = new String[] {"toast_module.js"};
+                case "console_module":
+                    modules = new String[]{"toast_module"};
                     break;
-                case "toast_module.js":
-                    modules = new String[] {"advanced_message_module.js", "message_provider_module.js"};
+                case "toast_module":
+                    modules = new String[]{"advanced_message_module", "message_provider_module"};
                     break;
-                case "advanced_message_module.js":
-                    modules = new String[] {"console_module.js"};
+                case "advanced_message_module":
+                    modules = new String[]{"toast_module"}; //{"console_module"};
                     break;
             }
         }
