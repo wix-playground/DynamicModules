@@ -1,6 +1,7 @@
 package com.dynamicmodules2;
 
 import android.app.Application;
+import android.content.res.AssetFileDescriptor;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -96,6 +97,14 @@ public class MainApplication extends Application implements ReactApplication, On
             @Override
             public InputStream open(@NonNull String name) throws IOException {
                 return getAssets().open("bundle/modules/" + name);
+            }
+
+            @Override
+            public long size(@NonNull String name) throws IOException {
+                AssetFileDescriptor fd = getAssets().openFd("bundle/modules/" + name);
+                long size = fd.getLength();
+                fd.close();
+                return size;
             }
         };
 

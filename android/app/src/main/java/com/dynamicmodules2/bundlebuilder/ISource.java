@@ -11,4 +11,6 @@ public interface ISource {
     String[] names();
 
     InputStream open(@NonNull String name) throws IOException;
+
+    long size(@NonNull String name) throws IOException;
 }

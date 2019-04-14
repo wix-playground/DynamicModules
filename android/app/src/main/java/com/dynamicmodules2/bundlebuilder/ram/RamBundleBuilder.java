@@ -1,171 +1,168 @@
 package com.dynamicmodules2.bundlebuilder.ram;
 
-import android.content.Context;
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
 
 import com.dynamicmodules2.bundlebuilder.ISource;
 
 import org.json.JSONException;
 
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 
 public class RamBundleBuilder {
-    private static final String ASSETS_BUNDLE_DIR = "rambundle/";
-    private static final String BUNDLE_BASE = "base_ram.js";
-    private static final String BUNDLE_BASE_PATH = ASSETS_BUNDLE_DIR + BUNDLE_BASE;
-    private static final String BUNDLE_JS_MODULES_DIR = "js-modules";
-    private static final String BUNDLE_JS_MODULES_DIR_PATH = ASSETS_BUNDLE_DIR + BUNDLE_JS_MODULES_DIR;
-    private static final String BUNDLE_CONFIG = "bundle.config";
 
     @NonNull
-    private Context context;
+    private ISource base;
 
     @NonNull
     private ISource[] modules;
 
     @NonNull
-    private String dstDir;
+    private String dst;
+
+    private RamBase ramBase;
+
+    private RamModule[] ramModules;
 
 
-    public RamBundleBuilder(@NonNull Context context, @NonNull ISource[] modules, @NonNull String dstDir) {
-        this.context = context;
+    private byte[] header;
+    private StringBuilder body;
+
+    public RamBundleBuilder(@NonNull ISource base,
+                            @NonNull ISource[] modules,
+                            @NonNull String dst) {
+        this.base = base;
         this.modules = modules;
-        this.dstDir = dstDir;
+        this.dst = dst;
     }
 
     public void build() throws IOException, JSONException {
-        RamBaseConfig config = new RamBaseConfig(context);
-
-        processBase();
-        createBundleConfig();
-        processBaseJsModules();
-        processModules(config);
-    }
-
-    private void processBase() throws IOException {
-        copyFromAssets(BUNDLE_BASE_PATH, dstDir + "/" + BUNDLE_BASE);
-    }
-
-    private void createBundleConfig() throws IOException {
-        copyFromAssets(RamBaseConfig.BUNDLE_CONFIG, dstDir + "/" + BUNDLE_CONFIG);
-    }
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private void processBaseJsModules() throws IOException {
-        // create dstDir/js-modules directory
-        String jsModulesDstDir = dstDir + "/" + BUNDLE_JS_MODULES_DIR;
-        new File(jsModulesDstDir).mkdir();
-
-        // copy all the js-modules
-        String[] files = context.getAssets().list(BUNDLE_JS_MODULES_DIR_PATH);
-        if (files != null) {
-            for (String file : files) {
-                copyFromAssets(BUNDLE_JS_MODULES_DIR_PATH + "/" + file, jsModulesDstDir + "/" + file);
-            }
-        }
-    }
-
-    @SuppressWarnings({"ResultOfMethodCallIgnored", "TryFinallyCanBeTryWithResources"})
-    private void processModules(@NonNull RamBaseConfig config) throws IOException, JSONException {
-        String[] moduleEntryPoints = new String[modules.length];
-
-        // process modules -> for every module:
-        //   load config
-        //   copy js-modules/*.js replacing "$__DM_BASE_INDEX" with its current value
-
-        String jsModulesDstDir = dstDir + "/" + BUNDLE_JS_MODULES_DIR;
-
-        int dmBaseIndex = config.getLastBaseIndex() + 1;
-        String dmBaseIndexString = String.valueOf(dmBaseIndex);
-
+        this.ramBase = new RamBase(base);
+        this.ramModules = new RamModule[modules.length];
         for (int i = 0; i < modules.length; i++) {
-            ISource module = modules[i];
-            RamModuleConfig moduleConfig = new RamModuleConfig(context, module);
-            moduleEntryPoints[i] = String.valueOf(dmBaseIndex + moduleConfig.getEntryPoint());
-
-            for (String filename : module.names()) {
-                StringBuilder sb = new StringBuilder();
-
-                BufferedReader br = new BufferedReader(new InputStreamReader(module.open(filename)));
-                try {
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        sb.append(line);
-                        line.replace("$__DM_BASE_INDEX", dmBaseIndexString);
-                    }
-                } finally {
-                    br.close();
-                }
-
-                int start = filename.lastIndexOf("/") + 1;
-                int end = filename.lastIndexOf(".");
-                String name = filename.substring(start, end);
-                name = String.valueOf(Integer.parseInt(name) + dmBaseIndex) + ".js";
-
-                FileWriter fw = new FileWriter(jsModulesDstDir + "/" + name);
-                fw.write(sb.toString());
-                fw.close();
-            }
+            this.ramModules[i] = new RamModule(modules[i]);
         }
 
-        // special process for reg after all modules are copied
-        processRegFile(config, moduleEntryPoints);
 
-        // update BUNDLE_CONFIG ???
+        createHeader();
+        createBody();
+        writeBundle();
     }
 
-    @SuppressWarnings({"TryFinallyCanBeTryWithResources", "ResultOfMethodCallIgnored"})
-    private void processRegFile(@NonNull RamBaseConfig config, @NonNull String[] moduleEntryPoints) throws IOException {
-        String jsModulesDstDir = dstDir + "/" + BUNDLE_JS_MODULES_DIR;
-        String path = jsModulesDstDir + "/" + config.getRegIndex() + ".js";
-        String entryPointsString = TextUtils.join(",", moduleEntryPoints);
+    private void createHeader() throws IOException {
+        int size = ramBase.getHeaderSize();
 
-        StringBuilder sb = new StringBuilder();
-
-        BufferedReader br = new BufferedReader(new FileReader(path));
-        try {
-            String line;
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-                line.replace("$__DM_MODULES_REG_INDEX_ARRAY", entryPointsString);
-                sb.append("\n");
-            }
-        } finally {
-            br.close();
+        for (RamModule module : ramModules) {
+            int moduleHeaderSize = module.getHeaderSize();
+            size += moduleHeaderSize;
         }
 
-        FileWriter fw = new FileWriter(path);
-        fw.write(sb.toString());
-        fw.close();
+        header = new byte[size];
+
+        // copy ramBase header
+        byte[] baseHeader = ramBase.getHeader();
+        System.arraycopy(baseHeader, 0, header, 0, baseHeader.length);
+
+        // change numModules
+        int numModules = (size - 3 * 4) / (2 * 4);
+        RamHeaderUtils.setIntByOffset(header, RamHeaderUtils.offset(1), numModules);
+
+        // copy module headers
+        int offset = baseHeader.length;
+        for (RamModule module : ramModules) {
+            byte[] moduleHeader = module.getHeader();
+            System.arraycopy(moduleHeader, 0, header, offset, offset + moduleHeader.length);
+            offset += moduleHeader.length;
+        }
+    }
+
+    private void createRegIdxArray(@NonNull StringBuilder sb) throws IOException {
+        // $__dmRegIdxArray = [idx1, ..., idxN];
+
+        sb.append("$__dmRegIdxArray=[");
+
+        int offset = (ramBase.getHeaderSize() - 3 * 4) / (2 * 4);
+
+        boolean notFirst = false;
+        for (RamModule module : ramModules) {
+            int entryPoint = module.getConfig().getEntryPoint() + offset;
+            offset += module.getHeaderSize() / (2 * 4);
+            if (notFirst) {
+                sb.append(",");
+            } else {
+                notFirst = true;
+            }
+            sb.append(entryPoint);
+        }
+
+        sb.append("];");
+    }
+
+    private void deltaOffsets(int fromPos, int toPos, int delta) {
+        for (int pos = fromPos; pos < toPos; pos += 2) {
+            int offset = RamHeaderUtils.offset(pos);
+            int value = RamHeaderUtils.getIntByOffset(header, offset);
+            if (value > 0) {
+                value += delta;
+                RamHeaderUtils.setIntByOffset(header, offset, value);
+            }
+        }
+    }
+
+    private String intToString(int value, int length) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(value);
+        while (sb.length() < length) {
+            sb.append(" ");
+        }
+        return sb.toString();
+    }
+
+    private void createBody() throws IOException {
+        StringBuilder sb = new StringBuilder();
+        createRegIdxArray(sb);
+
+        int delta = sb.length();
+
+        sb.append(ramBase.getBody());
+
+        // set startupCodeLength
+        RamHeaderUtils.setIntByOffset(header, RamHeaderUtils.offset(2), sb.length());
+
+        // ramBase body
+        int numModules = (ramBase.getHeaderSize() - 3 * 4) / (2 * 4);
+        deltaOffsets(3, 3 + numModules * 2, delta);
+
+        delta = sb.length();
+        int dmStartIndex = numModules;
+        String dmStartIndexName = "\\$__dmStartIndex";
+        int dmStartIndexNameLength = dmStartIndexName.length();
+        for (RamModule module : ramModules) {
+            // replace $__dmStartIndex with literal number in module.body
+            String dmStartIndexValue = intToString(dmStartIndex, dmStartIndexNameLength);
+            String moduleBody = module.getBody().replaceAll(dmStartIndexName, dmStartIndexValue);
+
+            // add fixed module.body to body
+            body.append(moduleBody);
+
+            // call deltaOffsets()
+            numModules = module.getHeaderSize() / (2 * 4);
+            deltaOffsets(dmStartIndex - 3, dmStartIndex - 3 + numModules * 2, delta);
+
+            // update delta & dmStartIndex
+            delta += moduleBody.length();
+            dmStartIndex += numModules;
+        }
     }
 
     @SuppressWarnings("TryFinallyCanBeTryWithResources")
-    private void copyFromAssets(@NonNull String src, @NonNull String dst) throws IOException {
-        InputStream in = null;
-        FileOutputStream out = null;
+    private void writeBundle() throws IOException {
+        FileOutputStream fos = new FileOutputStream(dst);
         try {
-            in = context.getAssets().open(src);
-            out  = new FileOutputStream(dst);
-            byte[] buf = new byte[1024];
-            int len;
-            while ((len = in.read(buf)) > 0) {
-                out.write(buf, 0, len);
-            }
+            fos.write(header);
+            fos.write(body.toString().getBytes());
         } finally {
-            if (in != null) {
-                in.close();
-            }
-            if (out != null) {
-                out.close();
-            }
+            fos.close();
         }
     }
 }
