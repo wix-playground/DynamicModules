@@ -50,36 +50,38 @@ public class RamBundleBuilder {
     }
 
     private void createHeader() throws IOException {
-        int size = ramBase.getHeaderSize();
+        header = ramBase.getHeader();
 
-        for (RamModule module : ramModules) {
-            int moduleHeaderSize = module.getHeaderSize();
-            size += moduleHeaderSize;
-        }
-
-        header = new byte[size];
-
-        // copy ramBase header
-        byte[] baseHeader = ramBase.getHeader();
-        System.arraycopy(baseHeader, 0, header, 0, baseHeader.length);
-
-        // change numModules
-        int numModules = (size - 3 * 4) / (2 * 4);
-        RamHeaderUtils.setIntByOffset(header, RamHeaderUtils.offset(1), numModules);
-
-        // copy module headers
-        int offset = baseHeader.length;
-        for (RamModule module : ramModules) {
-            byte[] moduleHeader = module.getHeader();
-            System.arraycopy(moduleHeader, 0, header, offset, moduleHeader.length);
-            offset += moduleHeader.length;
-        }
+//        int size = ramBase.getHeaderSize();
+//
+//        for (RamModule module : ramModules) {
+//            int moduleHeaderSize = module.getHeaderSize();
+//            size += moduleHeaderSize;
+//        }
+//
+//        header = new byte[size];
+//
+//        // copy ramBase header
+//        byte[] baseHeader = ramBase.getHeader();
+//        System.arraycopy(baseHeader, 0, header, 0, baseHeader.length);
+//
+//        // change numModules
+//        int numModules = (size - 3 * 4) / (2 * 4);
+//        RamHeaderUtils.setIntByOffset(header, RamHeaderUtils.offset(1), numModules);
+//
+//        // copy module headers
+//        int offset = baseHeader.length;
+//        for (RamModule module : ramModules) {
+//            byte[] moduleHeader = module.getHeader();
+//            System.arraycopy(moduleHeader, 0, header, offset, moduleHeader.length);
+//            offset += moduleHeader.length;
+//        }
     }
 
     private void createRegIdxArray(@NonNull StringBuilder sb) throws IOException {
-        // $__dmRegIdxArray = [idx1, ..., idxN];
+        // var $__dmRegIdxArray = [idx1, ..., idxN];
 
-        sb.append("$__dmRegIdxArray=[");
+        sb.append("var $__dmRegIdxArray=[");
 
         int offset = (ramBase.getHeaderSize() - 3 * 4) / (2 * 4);
 
@@ -120,39 +122,39 @@ public class RamBundleBuilder {
 
     private void createBody() throws IOException {
         body = new StringBuilder();
-        createRegIdxArray(body);
-
-        int delta = body.length();
+//        createRegIdxArray(body);
+//
+//        int delta = body.length();
 
         body.append(ramBase.getBody());
 
-        // set startupCodeLength
-        RamHeaderUtils.setIntByOffset(header, RamHeaderUtils.offset(2), body.length());
-
-        // ramBase body
-        int numModules = (ramBase.getHeaderSize() - 3 * 4) / (2 * 4);
-        deltaOffsets(3, 3 + numModules * 2, delta);
-
-        delta = body.length();
-        int dmStartIndex = numModules;
-        String dmStartIndexName = "\\$__dmStartIndex";
-        int dmStartIndexNameLength = dmStartIndexName.length();
-        for (RamModule module : ramModules) {
-            // replace $__dmStartIndex with literal number in module.body
-            String dmStartIndexValue = intToString(dmStartIndex, dmStartIndexNameLength);
-            String moduleBody = module.getBody().replaceAll(dmStartIndexName, dmStartIndexValue);
-
-            // add fixed module.body to body
-            body.append(moduleBody);
-
-            // call deltaOffsets()
-            numModules = module.getHeaderSize() / (2 * 4);
-            deltaOffsets(dmStartIndex - 3, dmStartIndex - 3 + numModules * 2, delta);
-
-            // update delta & dmStartIndex
-            delta += moduleBody.length();
-            dmStartIndex += numModules;
-        }
+//        // set startupCodeLength
+//        RamHeaderUtils.setIntByOffset(header, RamHeaderUtils.offset(2), body.length());
+//
+//        // ramBase body
+//        int numModules = (ramBase.getHeaderSize() - 3 * 4) / (2 * 4);
+//        deltaOffsets(3, 3 + numModules * 2, delta);
+//
+//        delta = body.length();
+//        int dmStartIndex = numModules;
+//        String dmStartIndexName = "\\$__dmStartIndex";
+//        int dmStartIndexNameLength = dmStartIndexName.length();
+//        for (RamModule module : ramModules) {
+//            // replace $__dmStartIndex with literal number in module.body
+//            String dmStartIndexValue = intToString(dmStartIndex, dmStartIndexNameLength);
+//            String moduleBody = module.getBody().replaceAll(dmStartIndexName, dmStartIndexValue);
+//
+//            // add fixed module.body to body
+//            body.append(moduleBody);
+//
+//            // call deltaOffsets()
+//            numModules = module.getHeaderSize() / (2 * 4);
+//            deltaOffsets(dmStartIndex - 3, dmStartIndex - 3 + numModules * 2, delta);
+//
+//            // update delta & dmStartIndex
+//            delta += moduleBody.length();
+//            dmStartIndex += numModules;
+//        }
     }
 
     @SuppressWarnings("TryFinallyCanBeTryWithResources")
@@ -160,7 +162,7 @@ public class RamBundleBuilder {
         FileOutputStream fos = new FileOutputStream(dst);
         try {
             fos.write(header);
-            fos.write(body.toString().getBytes());
+            fos.write(body.toString().getBytes("UTF-8"));
         } finally {
             fos.close();
         }
